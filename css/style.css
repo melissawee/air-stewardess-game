@@ -212,3 +212,52 @@ body.life-on #life{display:block}
 .rew div{background:#fff;border-radius:12px;padding:8px 12px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .banner2{background:var(--orchid);color:#fff;border-radius:14px;padding:12px 16px;font-weight:600;line-height:1.45}
 @media(max-width:760px){.lmain{grid-template-columns:minmax(0,1fr)}.stage{min-height:0;height:42vh}.lbar .mini{width:44px}.lbar{font-size:12px;gap:4px 12px}.swb{min-width:76px}}
+
+/* ---------- Outstation scenes ---------- */
+.oscene{position:relative;overflow:hidden;background:#1d2733;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.oscene>svg.world{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ohud{position:absolute;top:10px;right:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;z-index:3;max-width:60%}
+.ohud span{background:rgba(12,44,60,.84);color:#fff;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.obub{position:absolute;top:12px;left:12px;max-width:min(440px,calc(100% - 24px));background:#fff;border-radius:16px;border-bottom-left-radius:4px;padding:10px 14px;font-size:15px;line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.22);z-index:3;opacity:0;transform:translateY(-6px);transition:opacity .25s,transform .25s;pointer-events:none}
+.obub.on{opacity:1;transform:none}
+.obar{position:absolute;left:0;right:0;bottom:0;padding:28px 14px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(rgba(9,28,38,0),rgba(9,28,38,.88) 38%);color:#fff;display:flex;flex-wrap:wrap;gap:8px;align-items:center;z-index:4}
+.obar .pr{flex:1 1 100%;font-weight:600;font-size:15px;line-height:1.4;text-shadow:0 1px 2px rgba(0,0,0,.5)}
+.obar:empty{display:none}
+.obtn{border:0;border-radius:14px;min-height:46px;padding:0 16px;background:#fff;color:var(--deep);font-weight:700;font-size:14px;box-shadow:0 3px 0 rgba(0,0,0,.28);display:inline-flex;align-items:center;gap:6px}
+.obtn.main{background:var(--orchid);color:#fff}
+.obtn:disabled{opacity:.45;cursor:not-allowed}
+.obtn small{font-weight:500;opacity:.75}
+.obtn.walkbtn{width:56px;justify-content:center;font-size:18px;background:rgba(255,255,255,.92)}
+.hot{cursor:pointer}
+.hot .ring{animation:ring 1.4s infinite;transform-box:fill-box;transform-origin:center}
+@keyframes ring{0%{transform:scale(.55);opacity:.95}100%{transform:scale(1.5);opacity:0}}
+.lg,.ar{transform-box:view-box}
+.walking .lg.l,.walking .ar.r{animation:swing .46s infinite alternate ease-in-out}
+.walking .lg.r,.walking .ar.l{animation:swing .46s infinite alternate-reverse ease-in-out}
+@keyframes swing{from{transform:rotate(8deg)}to{transform:rotate(-8deg)}}
+.walking .bodyg{animation:bob .23s infinite alternate ease-in-out}
+@keyframes bob{to{transform:translateY(-5px)}}
+.face-l .flipg{transform:scaleX(-1);transform-box:fill-box;transform-origin:center}
+.ogame{position:absolute;inset:0;z-index:6;background:rgba(9,28,38,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.ogame .obar{padding:0}
+.cam{position:relative;width:min(720px,100%);aspect-ratio:200/130;border-radius:18px;overflow:hidden;border:10px solid #1b1b1f;box-shadow:0 12px 34px rgba(0,0,0,.45);flex:none}
+.cam .camv,.cam .camv svg{position:absolute;inset:0;width:100%;height:100%}
+.vf{position:absolute;width:30%;height:40%;border:3px solid #fff;border-radius:8px;box-shadow:0 0 0 2000px rgba(0,0,0,.38);transform:translate(-50%,-50%);left:50%;top:46%}
+.vf:before,.vf:after{content:"";position:absolute;left:50%;top:50%;background:#fff}
+.vf:before{width:18px;height:2px;margin:-1px 0 0 -9px}.vf:after{width:2px;height:18px;margin:-9px 0 0 -1px}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .5s}
+.flash.on{opacity:1;transition:none}
+.pol{background:#fff;padding:12px 12px 14px;border-radius:6px;box-shadow:0 14px 34px rgba(0,0,0,.45);width:min(380px,92%);transform:rotate(-2.5deg);animation:drop .5s ease;flex:none}
+.pol svg{width:100%;aspect-ratio:200/130;display:block;height:auto}
+.pol p{margin:10px 2px 0;font-size:15px;line-height:1.4;color:var(--ink)}
+@keyframes drop{from{transform:translateY(-40px) rotate(6deg);opacity:0}}
+.dish{width:100%;height:auto;cursor:pointer;display:block;border-radius:20px}
+.yum{position:absolute;font-weight:800;color:#fff;font-size:22px;text-shadow:0 2px 6px rgba(0,0,0,.5);animation:up 1s forwards;pointer-events:none}
+@keyframes up{to{transform:translateY(-60px);opacity:0}}
+.res{background:var(--cream);border-radius:18px;padding:18px;width:min(460px,100%);color:var(--ink);font-size:15px;line-height:1.5}
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.prod{border:0;background:#fff;border-radius:16px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:var(--ink);font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.08);min-height:44px}
+.prod svg{width:80px;height:80px}
+.prod:disabled{opacity:.6;cursor:default}
+@media(max-width:600px){.obtn{min-height:42px;padding:0 12px;font-size:13px}.obar{padding-top:18px}.obar .pr{font-size:14px}.ohud{left:10px;max-width:none}.ohud span{font-size:12px;padding:4px 9px}.obub{top:46px;font-size:14px}}
+@media(prefers-reduced-motion:reduce){.walking .lg,.walking .ar,.walking .bodyg{animation:none!important}}

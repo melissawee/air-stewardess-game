@@ -3,85 +3,145 @@
   let uid = 0;
   const find = (arr, id) => arr.find(x => x.id === id) || arr[0];
 
-  /* ---------- avatar (viewBox 0 0 240 300) ---------- */
-  // p: {skin, hairC, look:{found,hair,shadow,blush,lips,acc,ear}, outfit, uni, badge, wings, name, hairCol?}
-  SF.avatar = function (p, viewBox) {
+  /* ---------- people ---------- */
+  // p: {skin, hairC, hairCol, look:{found,hair,shadow,blush,lips,acc,ear}, outfit, uni, badge, wings, name, dress}
+  function prep(p) {
     const id = 'a' + (++uid);
     const L = p.look || {};
     const skin = SF.SKINS[p.skin] || SF.SKINS[1];
     const face = L.found != null ? SF.FOUND[L.found].c : skin;
     const hair = p.hairCol || SF.HAIRC[p.hairC] || SF.HAIRC[0];
     const U = SF.UNI[p.uni || 'teal'];
-    const style = L.hair || 'loose';
-    let s = `<svg viewBox="${viewBox || '0 0 240 300'}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${p.name || 'Crew member'}">`;
-    s += `<defs><pattern id="${id}k" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="22" fill="${U.c}"/>
-      <g fill="${U.a}" opacity=".85"><circle cx="11" cy="11" r="2.4"/><ellipse cx="11" cy="5.5" rx="1.8" ry="3.2"/><ellipse cx="11" cy="16.5" rx="1.8" ry="3.2"/><ellipse cx="5.5" cy="11" rx="3.2" ry="1.8"/><ellipse cx="16.5" cy="11" rx="3.2" ry="1.8"/></g>
-      <circle cx="0" cy="0" r="1.6" fill="${U.a}"/><circle cx="22" cy="22" r="1.6" fill="${U.a}"/><circle cx="22" cy="0" r="1.6" fill="${U.a}"/><circle cx="0" cy="22" r="1.6" fill="${U.a}"/></pattern>
-      <linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hair}"/><stop offset="1" stop-color="${shade(hair, -18)}"/></linearGradient></defs>`;
-    // hair behind
-    const hb = `fill="url(#${id}h)"`;
-    if (style === 'bun') s += `<circle cx="120" cy="50" r="25" ${hb}/><path d="M104 44q16-12 32 0" stroke="${shade(hair, 25)}" stroke-width="2" fill="none" opacity=".6"/>`;
-    if (style === 'twist') s += `<ellipse cx="120" cy="104" rx="60" ry="64" ${hb}/><path d="M164 70q16 30 6 76" stroke="${shade(hair, 22)}" stroke-width="3" fill="none" opacity=".6"/>`;
-    if (style === 'chignon') s += `<ellipse cx="120" cy="104" rx="57" ry="62" ${hb}/><circle cx="166" cy="152" r="18" ${hb}/>`;
-    if (style === 'pony') s += `<ellipse cx="120" cy="104" rx="57" ry="62" ${hb}/><path d="M150 70Q200 104 184 204Q178 224 166 210Q180 150 144 86Z" ${hb}/>`;
-    if (style === 'loose') s += `<path d="M62 104Q56 40 120 40Q184 40 178 104L188 236Q120 254 52 236Z" ${hb}/>`;
-    // body / outfit
-    const body = 'M18 300L20 252Q24 214 70 204L104 192Q120 206 136 192L170 204Q216 214 220 252L222 300Z';
-    const o = p.outfit || 'uniform';
-    if (o === 'uniform') {
-      s += `<path d="${body}" fill="url(#${id}k)"/><path d="M20 300L22 262Q30 236 46 232L52 300Z M220 300L218 262Q210 236 194 232L188 300Z" fill="${U.d}" opacity=".35"/>`;
-      s += `<path d="M98 194L120 242L142 194Z" fill="${skin}"/><path d="M94 196L120 248L146 196" stroke="#f3e2b8" stroke-width="5" fill="none" stroke-linejoin="round"/>`;
-      s += `<path d="M120 248L120 300" stroke="#f3e2b8" stroke-width="3" opacity=".8"/>`;
-    } else if (o === 'casual') {
-      s += `<path d="${body}" fill="#f6c453"/><path d="M80 230q40 20 80 0M70 262q50 22 100 0" stroke="#fff" stroke-width="3" fill="none" opacity=".7"/><path d="M100 194Q120 218 140 194Z" fill="${skin}"/>`;
-    } else if (o === 'robe') {
-      s += `<path d="${body}" fill="#f4f1ec"/><path d="M96 194L120 250L144 194Z" fill="${skin}"/><path d="M92 196L120 256L148 196M120 256L80 300M120 256L160 300" stroke="#dcd6cc" stroke-width="5" fill="none"/>`;
-    } else if (o === 'hotel') {
-      s += `<path d="${body}" fill="#2b2f45"/><path d="M100 194L120 250L140 194Z" fill="#fff"/><path d="M114 204L120 232L126 204L120 198Z" fill="#a8326e"/><path d="M96 196L120 256L144 196" stroke="#3d4260" stroke-width="5" fill="none"/>`;
-    }
-    // neck + head
-    s += `<path d="M104 146L104 196Q120 206 136 196L136 146Z" fill="${skin}"/><path d="M104 176Q120 186 136 176L136 168Q120 178 104 168Z" fill="#000" opacity=".06"/>`;
-    s += `<ellipse cx="69" cy="118" rx="8" ry="12" fill="${skin}"/><ellipse cx="171" cy="118" rx="8" ry="12" fill="${skin}"/>`;
-    s += `<ellipse cx="120" cy="112" rx="51" ry="59" fill="${face}"/>`;
+    const iris = p.iris || '#5a3420';
+    const defs = `<defs>
+      <pattern id="${id}k" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="22" fill="${U.c}"/>
+        <g fill="${U.a}" opacity=".9"><circle cx="11" cy="11" r="2.3"/><ellipse cx="11" cy="5.6" rx="1.7" ry="3.1"/><ellipse cx="11" cy="16.4" rx="1.7" ry="3.1"/><ellipse cx="5.6" cy="11" rx="3.1" ry="1.7"/><ellipse cx="16.4" cy="11" rx="3.1" ry="1.7"/></g>
+        <g fill="${U.a}" opacity=".7"><circle cx="0" cy="0" r="1.5"/><circle cx="22" cy="22" r="1.5"/><circle cx="22" cy="0" r="1.5"/><circle cx="0" cy="22" r="1.5"/></g></pattern>
+      <pattern id="${id}s" width="30" height="30" patternUnits="userSpaceOnUse"><rect width="30" height="30" fill="${U.d}"/><path d="M0 15h30M15 0v30" stroke="${U.a}" stroke-width="1" opacity=".35"/><circle cx="15" cy="15" r="4" fill="none" stroke="${U.a}" stroke-width="1.4" opacity=".7"/><circle cx="0" cy="0" r="2" fill="${U.a}" opacity=".6"/><circle cx="30" cy="30" r="2" fill="${U.a}" opacity=".6"/></pattern>
+      <linearGradient id="${id}h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${shade(hair, 14)}"/><stop offset=".55" stop-color="${hair}"/><stop offset="1" stop-color="${shade(hair, -16)}"/></linearGradient>
+      <radialGradient id="${id}f" cx=".5" cy=".42" r=".64"><stop offset="0" stop-color="${shade(face, 12)}"/><stop offset=".72" stop-color="${face}"/><stop offset="1" stop-color="${shade(face, -14)}"/></radialGradient>
+      <radialGradient id="${id}i" cx=".5" cy=".72" r=".7"><stop offset="0" stop-color="${shade(iris, 70)}"/><stop offset=".55" stop-color="${iris}"/><stop offset="1" stop-color="${shade(iris, -40)}"/></radialGradient>
+      <clipPath id="${id}e1"><path d="${eyeL(100)}"/></clipPath><clipPath id="${id}e2"><path d="${eyeR(140)}"/></clipPath></defs>`;
+    return { id, L, skin, face, hair, U, defs, style: L.hair || 'loose' };
+  }
+  const eyeL = cx => `M${cx - 15} 119Q${cx - 1} 100.5 ${cx + 14} 116Q${cx + 1} 131 ${cx - 15} 119Z`;
+  const eyeR = cx => `M${cx + 15} 119Q${cx + 1} 100.5 ${cx - 14} 116Q${cx - 1} 131 ${cx + 15} 119Z`;
+
+  function head(p, A) {
+    const { id, L, skin, face, hair, U, style } = A;
+    const hb = `fill="url(#${id}h)"`, hl = shade(hair, 45), hd = shade(hair, -22);
+    let back = '', nf = '', front = '';
+    // hair behind the head
+    if (style !== 'loose') back += `<ellipse cx="120" cy="102" rx="55" ry="59" ${hb}/>`;
+    if (style === 'bun') back += `<circle cx="120" cy="42" r="26" ${hb}/><path d="M99 40q21-20 42 0M103 50q17-12 34 0" stroke="${hl}" stroke-width="2.2" fill="none" opacity=".35"/><path d="M98 60q22 8 44 0" stroke="${hd}" stroke-width="5" fill="none" opacity=".5"/>`;
+    if (style === 'twist') back += `<path d="M156 62C178 82 180 130 164 154C156 144 160 102 148 76Z" ${hb}/><path d="M160 80q8 14 2 30M164 104q6 14-2 28" stroke="${hl}" stroke-width="2" fill="none" opacity=".4"/>`;
+    if (style === 'chignon') back += `<ellipse cx="161" cy="160" rx="21" ry="19" ${hb}/><path d="M146 156q14-10 30 2M148 166q12 8 26-2" stroke="${hl}" stroke-width="2" fill="none" opacity=".35"/>`;
+    if (style === 'pony') back += `<path d="M148 64C198 86 204 162 180 220C174 234 160 228 165 212C182 160 172 110 142 82Z" ${hb}/><path d="M170 110q10 40 0 90" stroke="${hl}" stroke-width="2" fill="none" opacity=".35"/>`;
+    if (style === 'loose') back += `<path d="M64 112C56 52 90 36 120 36C150 36 184 52 176 112C180 162 190 214 182 256C162 266 142 258 120 262C98 258 78 266 58 256C50 214 60 162 64 112Z" ${hb}/>`;
+    // neck, ears, face
+    nf += `<path d="M107 166L107 207Q120 214 133 207L133 166Z" fill="${skin}"/><path d="M107 170Q120 190 133 170L133 182Q120 198 107 182Z" fill="#000" opacity=".1"/>`;
+    nf += `<ellipse cx="71" cy="121" rx="6.5" ry="10" fill="${skin}"/><ellipse cx="169" cy="121" rx="6.5" ry="10" fill="${skin}"/><path d="M70 116q3 4 0 9M170 116q-3 4 0 9" stroke="${shade(skin, -40)}" stroke-width="1.2" fill="none" opacity=".4"/>`;
+    nf += `<path d="M120 58C151 58 171 79 171 109C171 137 161 156 147 168C137 176 128 181 120 181C112 181 103 176 93 168C79 156 69 137 69 109C69 79 89 58 120 58Z" fill="url(#${id}f)"/>`;
+    // natural flush + blush
+    nf += `<g fill="#ff8f8f" opacity=".14"><ellipse cx="93" cy="141" rx="12" ry="8"/><ellipse cx="147" cy="141" rx="12" ry="8"/></g>`;
+    const bl = find(SF.BLUSH, L.blush);
+    if (bl.c) nf += `<g fill="${bl.c}" opacity="${bl.id === 'clown' ? .72 : .34}"><ellipse cx="93" cy="141" rx="${bl.id === 'clown' ? 17 : 12}" ry="${bl.id === 'clown' ? 14 : 8}"/><ellipse cx="147" cy="141" rx="${bl.id === 'clown' ? 17 : 12}" ry="${bl.id === 'clown' ? 14 : 8}"/></g>`;
     // eyeshadow
     const sh = find(SF.SHADOW, L.shadow);
     if (sh.c) {
       const c = sh.c === 'uni' ? U.c : sh.c;
-      s += `<g fill="${c}" opacity="${sh.id === 'champ' ? .9 : .62}"><path d="M84 114Q98 97 114 111L114 114Q98 104 84 116Z"/><path d="M156 114Q142 97 126 111L126 114Q142 104 156 116Z"/></g>`;
-      if (sh.id === 'glitter') s += `<g fill="#fff">${[88, 96, 104, 136, 144, 152].map((x, i) => `<circle cx="${x}" cy="${104 + (i % 2) * 4}" r="1.3"/>`).join('')}</g>`;
+      nf += `<g fill="${c}" opacity="${sh.id === 'champ' ? .85 : .55}"><path d="M84 119Q99 100 115 116Q101 91 84 119Z"/><path d="M156 119Q141 100 125 116Q139 91 156 119Z"/></g>`;
+      if (sh.id === 'glitter') nf += `<g fill="#fff">${[[90, 108], [98, 104], [106, 106], [134, 106], [142, 104], [150, 108]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.3"/>`).join('')}</g>`;
     }
     // eyes
-    const eye = cx => `<path d="M${cx - 11} 114Q${cx} 106 ${cx + 11} 114Q${cx} 121 ${cx - 11} 114Z" fill="#fff"/><circle cx="${cx}" cy="114" r="5.4" fill="#3b2416"/><circle cx="${cx}" cy="114" r="2.5" fill="#120a06"/><circle cx="${cx + 2}" cy="112" r="1.5" fill="#fff"/>`;
-    s += eye(99) + eye(141);
-    s += `<g stroke="#1d1310" stroke-width="2.6" fill="none" stroke-linecap="round"><path d="M86 114Q99 104 112 113"/><path d="M86 114l-4-3"/><path d="M154 114Q141 104 128 113"/><path d="M154 114l4-3"/></g>`;
-    s += `<g stroke="${shade(hair, -10)}" stroke-width="3.4" fill="none" stroke-linecap="round"><path d="M87 95Q99 89 111 93"/><path d="M129 93Q141 89 153 95"/></g>`;
-    s += `<path d="M120 120Q116 132 121 136" stroke="${shade(skin, -40)}" stroke-width="2" fill="none" opacity=".55" stroke-linecap="round"/>`;
-    // blush
-    const bl = find(SF.BLUSH, L.blush);
-    if (bl.c) s += `<g fill="${bl.c}" opacity="${bl.id === 'clown' ? .75 : .38}"><circle cx="89" cy="134" r="${bl.id === 'clown' ? 16 : 10}"/><circle cx="151" cy="134" r="${bl.id === 'clown' ? 16 : 10}"/></g>`;
+    const crease = shade(skin, -48);
+    const eye = (cx, clip, d, dir) => `<path d="${d}" fill="#fdfbf8"/><g clip-path="url(#${clip})"><circle cx="${cx + dir}" cy="117.5" r="8.8" fill="url(#${id}i)"/><circle cx="${cx + dir}" cy="117.5" r="4" fill="#120a06"/><circle cx="${cx + dir + 3}" cy="114" r="2.5" fill="#fff"/><circle cx="${cx + dir - 2.6}" cy="121" r="1.1" fill="#fff" opacity=".8"/><path d="M${cx - 16} 112h32v4h-32z" fill="#000" opacity=".08"/></g>`;
+    nf += eye(100, id + 'e1', eyeL(100), 1) + eye(140, id + 'e2', eyeR(140), -1);
+    nf += `<g fill="none" stroke-linecap="round"><path d="M85 119Q99 100.5 114 116M155 119Q141 100.5 126 116" stroke="#1a0f0b" stroke-width="3.4"/><path d="M85 119L79.5 115M155 119L160.5 115" stroke="#1a0f0b" stroke-width="2.4"/><path d="M88 123Q100 130.5 113 118M152 123Q140 130.5 127 118" stroke="#1a0f0b" stroke-width="1" opacity=".3"/><path d="M87 108Q100 97 113 105M153 108Q140 97 127 105" stroke="${crease}" stroke-width="1.3" opacity=".38"/></g>`;
+    nf += `<g fill="${shade(hair, -8)}"><path d="M85 99Q98 88 114 93Q99 92 86 101.5Z"/><path d="M155 99Q142 88 126 93Q141 92 154 101.5Z"/></g>`;
+    nf += `<path d="M122 127Q125.5 139 120 142.5" stroke="${shade(skin, -55)}" stroke-width="1.6" fill="none" opacity=".35" stroke-linecap="round"/><path d="M115 144q2.6 1.8 5.2.4" stroke="${shade(skin, -55)}" stroke-width="1.3" fill="none" opacity=".28" stroke-linecap="round"/>`;
     // lips
     const lp = find(SF.LIPS, L.lips);
-    const lc = lp.c || shade(skin, -38);
-    s += `<path d="M107 148Q114 142 120 145Q126 142 133 148Q120 151 107 148Z" fill="${lc}"/><path d="M107 148Q120 161 133 148Q120 152 107 148Z" fill="${lp.c ? shade(lc, 12) : shade(skin, -28)}"/>`;
-    if (lp.c) s += `<path d="M113 153q7 2 13 0" stroke="#fff" stroke-width="1.4" opacity=".45" fill="none" stroke-linecap="round"/>`;
-    // hair front
-    s += `<path d="M66 112Q62 50 120 46Q178 50 174 112Q170 84 152 70Q124 86 90 74Q72 88 66 112Z" fill="url(#${id}h)"/>`;
-    if (style === 'pony' || style === 'loose') s += `<path d="M72 98Q94 60 152 64Q124 78 104 100Q90 92 72 98Z" fill="${hair}"/>`;
-    if (style === 'loose') s += `<path d="M66 108Q58 172 72 232L86 230Q76 172 80 112Z" fill="${hair}"/><path d="M174 108Q182 172 168 232L154 230Q164 172 160 112Z" fill="${hair}"/>`;
-    s += `<path d="M84 64Q110 54 138 58" stroke="${shade(hair, 30)}" stroke-width="3" fill="none" opacity=".45" stroke-linecap="round"/>`;
+    const lc = lp.c || shade(skin, -32);
+    nf += `<path d="M107.5 154Q113 148 118 150.5Q120 151.5 122 150.5Q127 148 132.5 154Q120 157 107.5 154Z" fill="${shade(lc, -10)}"/><path d="M107.5 154Q120 166 132.5 154Q120 158 107.5 154Z" fill="${lc}"/><ellipse cx="121" cy="159" rx="5" ry="1.6" fill="#fff" opacity="${lp.c ? .35 : .15}"/><path d="M107 154q-1.8-.8-2.6-2.4M133 154q1.8-.8 2.6-2.4" stroke="${shade(skin, -50)}" stroke-width="1.1" fill="none" opacity=".35" stroke-linecap="round"/>`;
+    // hair in front
+    front += `<path d="M66 118C60 66 88 42 120 42C154 42 182 66 174 118C170 100 164 86 152 76C146 92 120 98 96 88C88 98 76 106 66 118Z" ${hb}/>`;
+    if (style === 'pony' || style === 'loose') front += `<path d="M70 108C78 72 110 58 152 70C134 72 114 84 102 106C92 98 80 100 70 108Z" fill="${shade(hair, 6)}"/>`;
+    if (style === 'loose') front += `<path d="M66 112C56 160 60 214 72 252L89 248C78 210 76 160 80 114Z" ${hb}/><path d="M174 112C184 160 180 214 168 252L151 248C162 210 164 160 160 114Z" ${hb}/>`;
+    front += `<g fill="none" stroke-linecap="round"><path d="M86 62C102 51 130 49 148 58" stroke="#fff" stroke-width="6" opacity=".16"/><path d="M80 82C92 64 112 57 130 57M140 60C154 66 164 78 168 94" stroke="${hl}" stroke-width="1.8" opacity=".35"/></g>`;
     // accessories
     const ac = L.acc || 'none';
-    if (ac === 'orchid') s += `<g transform="translate(80 68)">${[0, 72, 144, 216, 288].map((a, i) => `<ellipse rx="5" ry="9" cy="-7" fill="${i % 2 ? '#d16a9f' : '#a8326e'}" transform="rotate(${a})"/>`).join('')}<circle r="3.6" fill="#e3b04b"/></g>`;
-    if (ac === 'pearlclip') s += `<g fill="#fbf7ef" stroke="#cfc6b6">${[0, 1, 2, 3].map(i => `<circle cx="${74 + i * 8}" cy="${80 - i * 5}" r="3.8"/>`).join('')}</g>`;
-    if (ac === 'bow') s += `<g transform="translate(120 40)"><path d="M0 0L-46 -24Q-54 0 -46 24Z M0 0L46 -24Q54 0 46 24Z" fill="#ff4d6d"/><circle r="9" fill="#e0304f"/></g>`;
+    if (ac === 'orchid') front += `<g transform="translate(80 74)">${[0, 72, 144, 216, 288].map((a, i) => `<ellipse rx="5" ry="9" cy="-7" fill="${i % 2 ? '#d16a9f' : '#a8326e'}" transform="rotate(${a})"/>`).join('')}<circle r="3.6" fill="#e3b04b"/></g>`;
+    if (ac === 'pearlclip') front += `<g fill="#fbf7ef" stroke="#cfc6b6">${[0, 1, 2, 3].map(i => `<circle cx="${74 + i * 8}" cy="${86 - i * 6}" r="3.8"/>`).join('')}</g>`;
+    if (ac === 'bow') front += `<g transform="translate(120 36)"><path d="M0 0L-46-24Q-54 0-46 24Z M0 0L46-24Q54 0 46 24Z" fill="#ff4d6d"/><circle r="9" fill="#e0304f"/></g>`;
     const er = L.ear || 'none';
-    if (er === 'studs') s += `<circle cx="69" cy="129" r="3" fill="#e3b04b"/><circle cx="171" cy="129" r="3" fill="#e3b04b"/>`;
-    if (er === 'pearls') s += `<g fill="#fbf7ef" stroke="#d6cdbd"><circle cx="69" cy="131" r="4.4"/><circle cx="171" cy="131" r="4.4"/></g>`;
-    if (er === 'hoops') s += `<g stroke="#e3b04b" stroke-width="3" fill="none"><circle cx="68" cy="140" r="11"/><circle cx="172" cy="140" r="11"/></g>`;
-    if (o === 'uniform' && p.wings) s += `<g transform="translate(70 234)"><path d="M0 0C-8-7-22-7-28-4C-21-2-14 1-7 3Z" fill="#e3b04b"/><path d="M0 0C8-7 22-7 28-4C21-2 14 1 7 3Z" fill="#e3b04b"/><circle r="3.6" fill="#a8326e"/></g>`;
-    if ((o === 'uniform' || o === 'hotel') && p.badge) s += `<rect x="148" y="228" width="46" height="15" rx="2.5" fill="#f7efdf" stroke="#c9a14a"/><text x="171" y="239" font-size="8" font-family="Sora,sans-serif" font-weight="600" text-anchor="middle" fill="#2a3540">${esc((p.name || '').slice(0, 10))}</text>`;
+    if (er === 'studs') nf += `<circle cx="70" cy="131" r="3" fill="#e3b04b"/><circle cx="170" cy="131" r="3" fill="#e3b04b"/>`;
+    if (er === 'pearls') nf += `<g fill="#fbf7ef" stroke="#d6cdbd"><circle cx="70" cy="133" r="4.5"/><circle cx="170" cy="133" r="4.5"/></g>`;
+    if (er === 'hoops') front += `<g stroke="#e3b04b" stroke-width="3" fill="none"><circle cx="69" cy="142" r="11"/><circle cx="171" cy="142" r="11"/></g>`;
+    return { back, nf, front };
+  }
+
+  // bust portrait, viewBox 0 0 240 300
+  SF.avatar = function (p, viewBox) {
+    const A = prep(p), H = head(p, A), { id, skin, U } = A;
+    const o = p.outfit || 'uniform';
+    let s = `<svg viewBox="${viewBox || '0 0 240 300'}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(p.name || 'Crew member')}">${A.defs}${H.back}`;
+    const body = 'M28 300L32 262Q38 228 80 216L106 206Q120 216 134 206L160 216Q202 228 208 262L212 300Z';
+    if (o === 'uniform') {
+      s += `<path d="${body}" fill="url(#${id}k)"/><path d="M28 300L32 262Q38 236 58 228L62 300ZM212 300L208 262Q202 236 182 228L178 300Z" fill="${U.d}" opacity=".35"/>`;
+      s += `<path d="M103 208L120 256L137 208Z" fill="${skin}"/><path d="M99 210L120 260L141 210" stroke="#f3e2b8" stroke-width="5" fill="none" stroke-linejoin="round"/>`;
+      s += `<g fill="#e3b04b" stroke="#b9852a" stroke-width="1"><circle cx="120" cy="268" r="4.3"/><circle cx="120" cy="282" r="4.3"/><circle cx="120" cy="296" r="4.3"/></g>`;
+    } else if (o === 'casual') {
+      const dc = p.dress || '#f6c453';
+      s += `<path d="${body}" fill="${skin}"/><path d="M66 300L72 248Q96 238 120 240Q144 238 168 248L174 300Z" fill="${dc}"/><path d="M86 246L100 212M154 246L140 212" stroke="${dc}" stroke-width="6" stroke-linecap="round"/><g fill="#fff" opacity=".55">${[[88, 268], [112, 284], [140, 266], [158, 288], [100, 294]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.2"/>`).join('')}</g>`;
+    } else if (o === 'robe') {
+      s += `<path d="${body}" fill="#f7f4ee"/><path d="M100 208L120 256L140 208Z" fill="${skin}"/><path d="M96 210L120 262L144 210M120 262L84 300M120 262L156 300" stroke="#ddd6cb" stroke-width="5" fill="none"/>`;
+    } else if (o === 'hotel') {
+      s += `<path d="${body}" fill="#2b2f45"/><path d="M102 208L120 256L138 208Z" fill="#fff"/><path d="M114 216L120 244L126 216L120 210Z" fill="#a8326e"/><path d="M98 210L120 262L142 210" stroke="#3d4260" stroke-width="5" fill="none"/>`;
+    }
+    s += H.nf + H.front;
+    if (o === 'uniform' && p.wings) s += `<g transform="translate(74 240)"><path d="M0 0C-8-7-22-7-28-4C-21-2-14 1-7 3Z" fill="#e3b04b"/><path d="M0 0C8-7 22-7 28-4C21-2 14 1 7 3Z" fill="#e3b04b"/><circle r="3.6" fill="#a8326e"/></g>`;
+    if ((o === 'uniform' || o === 'hotel') && p.badge) s += `<rect x="146" y="234" width="46" height="15" rx="2.5" fill="#f7efdf" stroke="#c9a14a"/><text x="169" y="245" font-size="8" font-family="Sora,sans-serif" font-weight="600" text-anchor="middle" fill="#2a3540">${esc((p.name || '').slice(0, 10))}</text>`;
     return s + '</svg>';
   };
+
+  // full body, viewBox 0 0 240 580; legs/arms grouped for walk animation
+  SF.avatarFull = function (p) {
+    const A = prep(p), H = head(p, A), { id, skin, U } = A;
+    const o = p.outfit || 'casual', dc = p.dress || '#f6c453';
+    const hg = c => `<g transform="translate(26.4 -6) scale(.78)">${c}</g>`;
+    const leg = (side, inner) => `<g class="lg ${side}" style="transform-box:view-box;transform-origin:${side === 'l' ? 104 : 136}px 300px">${inner}</g>`;
+    const arm = (side, col) => { const x = side === 'l' ? [70, 58, 54] : [170, 182, 186]; return `<g class="ar ${side}" style="transform-box:view-box;transform-origin:${x[0]}px 168px"><path d="M${x[0]} 168Q${x[1]} 220 ${x[2]} 296" stroke="${col}" stroke-width="19" stroke-linecap="round" fill="none"/><circle cx="${x[2]}" cy="302" r="9.5" fill="${skin}"/></g>`; };
+    const shoe = (x, c) => `<ellipse cx="${x}" cy="566" rx="15" ry="7" fill="${c}"/>`;
+    const skinLeg = x => `<path d="M${x} 400L${x + (x < 120 ? -2 : 2)} 556" stroke="${skin}" stroke-width="17" stroke-linecap="round"/>`;
+    let s = `<svg viewBox="0 0 240 580" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${esc(p.name || 'Person')}">${A.defs}<g class="bodyg">${hg(H.back)}`;
+    const torso = 'M86 154Q120 162 154 154Q172 158 176 176L166 262Q120 270 74 262L64 176Q68 158 86 154Z';
+    if (o === 'uniform') {
+      s += leg('l', shoe(100, '#1f3b52')) + leg('r', shoe(140, '#1f3b52'));
+      s += `<path d="M78 266L162 266L174 560L66 560Z" fill="url(#${id}s)"/><path d="M120 276L128 560" stroke="#000" stroke-width="2" opacity=".18"/>`;
+      s += arm('l', `url(#${id}k)`) + arm('r', `url(#${id}k)`);
+      s += `<path d="${torso}" fill="url(#${id}k)"/><path d="M74 262L166 262L171 302Q120 286 69 302Z" fill="url(#${id}k)"/><path d="M69 302Q120 286 171 302" stroke="#f3e2b8" stroke-width="3" fill="none"/>`;
+      s += `<path d="M107 156L120 198L133 156Z" fill="${skin}"/><path d="M103 157L120 202L137 157" stroke="#f3e2b8" stroke-width="4" fill="none"/><g fill="#e3b04b" stroke="#b9852a"><circle cx="120" cy="210" r="3.4"/><circle cx="120" cy="224" r="3.4"/><circle cx="120" cy="238" r="3.4"/></g>`;
+      if (p.wings) s += `<g transform="translate(88 186) scale(.7)"><path d="M0 0C-8-7-22-7-28-4C-21-2-14 1-7 3Z" fill="#e3b04b"/><path d="M0 0C8-7 22-7 28-4C21-2 14 1 7 3Z" fill="#e3b04b"/><circle r="3.6" fill="#a8326e"/></g>`;
+      if (p.badge) s += `<rect x="134" y="180" width="30" height="10" rx="2" fill="#f7efdf" stroke="#c9a14a"/>`;
+    } else if (o === 'casual') {
+      s += leg('l', skinLeg(102) + `<path d="M86 562h28" stroke="${shade(dc, -40)}" stroke-width="8" stroke-linecap="round"/>`) + leg('r', skinLeg(138) + `<path d="M126 562h28" stroke="${shade(dc, -40)}" stroke-width="8" stroke-linecap="round"/>`);
+      s += arm('l', skin) + arm('r', skin);
+      s += `<path d="${torso}" fill="${skin}"/><path d="M84 190Q120 198 156 190L166 262Q120 270 74 262Z" fill="${dc}"/><path d="M90 192L100 158M150 192L140 158" stroke="${dc}" stroke-width="5" stroke-linecap="round"/>`;
+      s += `<path d="M76 258L164 258L192 414Q120 430 48 414Z" fill="${dc}"/><path d="M76 262Q120 274 164 262" stroke="${shade(dc, -25)}" stroke-width="4" fill="none"/><g fill="#fff" opacity=".5">${[[84, 300], [120, 330], [150, 296], [100, 376], [140, 388], [170, 360], [70, 360]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="4"/>`).join('')}</g>`;
+    } else if (o === 'hotel') {
+      s += leg('l', `<path d="M104 262L102 556" stroke="#22253a" stroke-width="30"/>${shoe(100, '#111')}`) + leg('r', `<path d="M136 262L138 556" stroke="#22253a" stroke-width="30"/>${shoe(140, '#111')}`);
+      s += arm('l', '#2b2f45') + arm('r', '#2b2f45');
+      s += `<path d="${torso}" fill="#2b2f45"/><path d="M74 262L166 262L170 300L70 300Z" fill="#2b2f45"/><path d="M106 156L120 200L134 156Z" fill="#fff"/><path d="M116 164L120 190L124 164Z" fill="#a8326e"/>`;
+    } else {
+      s += leg('l', skinLeg(102) + shoe(100, '#f4f1ec')) + leg('r', skinLeg(138) + shoe(140, '#f4f1ec'));
+      s += arm('l', '#f7f4ee') + arm('r', '#f7f4ee');
+      s += `<path d="${torso}" fill="#f7f4ee"/><path d="M74 258L166 258L178 500L62 500Z" fill="#f7f4ee"/><path d="M106 156L120 210L134 156Z" fill="${skin}"/><path d="M74 270Q120 282 166 270" stroke="#ddd6cb" stroke-width="6" fill="none"/>`;
+    }
+    s += hg(H.nf + H.front);
+    return s + '</g></svg>';
+  };
+
   function shade(hex, amt) {
     const n = parseInt(hex.slice(1), 16);
     const f = v => Math.max(0, Math.min(255, v + amt));

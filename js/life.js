@@ -25,7 +25,6 @@
   const owns = item => !item.shop || S.owned.includes(item.id);
   const me = o => SF.avatar(Object.assign({ skin: S.skin, hairC: S.hairC, look: S.look, outfit: S.wear.outfit, uni: uniKey(), badge: S.wear.badge, wings: S.wear.wings, name: S.name }, o || {}));
   const SUP = { skin: 2, hairC: 0, look: { found: 2, hair: 'twist', shadow: 'brown', blush: 'rose', lips: 'ruby', acc: 'none', ear: 'pearls' }, outfit: 'uniform', uni: 'plum', badge: true, wings: true, name: 'Mdm Tan' };
-  const DESK = { KUL: ['Aisyah', 3], BKK: ['Ploy', 2], HND: ['Yui', 0], LHR: ['Olivia', 1], JFK: ['Maya', 5] };
   const orchid = '<svg viewBox="0 0 40 40" aria-hidden="true"><g transform="translate(20 20)">' + [0, 72, 144, 216, 288].map(a => '<ellipse rx="6" ry="11" cy="-9" fill="' + (a % 144 ? '#d16a9f' : '#a8326e') + '" transform="rotate(' + a + ')"/>').join('') + '<circle r="4.5" fill="#e3b04b"/></g></svg>';
   const starRow = n => '<div class="stars">' + [0, 1, 2].map(i => '<svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="' + (i < n ? '#e3b04b' : '#ddd5c6') + '" stroke="' + (i < n ? '#b9852a' : '#cbc2b2') + '"/></svg>').join('') + '</div>';
   const sfx = k => { try { Flight.SFX[k](); } catch (e) { } };
@@ -63,8 +62,7 @@
   }
   function resume() {
     if (!S.created) return creator();
-    if (S.phase === 'hotel') return hotel();
-    if (S.phase === 'layover') return layover();
+    if ((S.phase === 'hotel' || S.phase === 'layover') && S.lay) return SF.out.resume();
     if (S.phase === 'flying') { S.phase = 'home'; save(); }
     home();
   }
@@ -234,7 +232,7 @@
     if (res.stars > S.stars[res.lvl]) S.stars[res.lvl] = res.stars;
     if (res.score > S.best[res.lvl]) S.best[res.lvl] = res.score;
     S.phase = 'hotel';
-    S.lay = { city: L.to, lvl: res.lvl, step: 0, hours: SF.CITIES[L.to].hours, room: null, wake: true, done: [], chat: [], shop: false };
+    S.lay = { city: L.to, lvl: res.lvl, hours: SF.CITIES[L.to].hours, room: null, wake: true, done: [], shop: false, stage: 'lobby', lob: 0 };
     save();
     const up = rankIdx() > before, newR = SF.RANKS[rankIdx()];
     const unlockedNow = !wasNext && unlocked(res.lvl + 1) && res.lvl < 4;
@@ -248,98 +246,6 @@
       <div class="row-btns"><button class="cta" data-l="hotel">Head to the hotel</button></div>`;
     frame(SF.scene('report', me({ outfit: 'uniform' })), panel);
     if (up) sfx('win');
-  }
-
-  /* ---------- hotel check-in ---------- */
-  function hotel() {
-    const Y = S.lay, C = SF.CITIES[Y.city], D = DESK[Y.city];
-    if (!Y.chat.length) Y.chat.push(['them', `${C.hi} Welcome to ${C.hotel}. Checking in with the Singapore Flight crew?`]);
-    let opts = '';
-    if (Y.step === 0) opts = has('crewid') ? '<button class="opt" data-l="h0" data-v="id">Yes! Here’s my crew ID.</button>' : '<button class="opt" data-l="h0" data-v="noid">Um… I can’t find my crew ID.</button>';
-    if (Y.step === 1) opts = [['view', 'A high floor with a view, please.'], ['quiet', 'A quiet room away from the lift.'], ['pool', 'Close to the pool and gym.']].map(([v, t]) => `<button class="opt" data-l="h1" data-v="${v}">${t}</button>`).join('');
-    if (Y.step === 2) opts = '<button class="opt" data-l="h2" data-v="yes">Yes please, a wake-up call would be great.</button><button class="opt" data-l="h2" data-v="no">No thanks, I’ll set my own alarm.</button>';
-    if (Y.step === 3) opts = '<button class="cta" data-l="lay">Plan my layover</button>';
-    const panel = `<h2>Hotel check-in</h2><p class="sub">${C.hotel}, ${C.city}</p>
-      <div class="chat">${Y.chat.map(([w, t]) => `<div class="bub ${w}">${w === 'them' ? `<b>${D[0]}:</b> ` : ''}${t}</div>`).join('')}</div>
-      <div class="opts">${opts}</div>`;
-    frame(SF.scene('hotel', SF.avatar({ skin: D[1], hairC: 1, look: { found: D[1], hair: 'bun', shadow: 'champ', blush: 'peach', lips: 'coral', acc: 'none', ear: 'studs' }, outfit: 'hotel', badge: true, name: D[0] }), { hotel: C.hotel }), panel);
-  }
-  function hotelStep(step, v) {
-    const Y = S.lay, C = SF.CITIES[Y.city];
-    if (step === 0) {
-      if (v === 'id') { Y.chat.push(['me', 'Yes! Here’s my crew ID.'], ['them', `Thank you, ${esc(S.name)}. Any room preference tonight?`]); }
-      else { Y.hours -= 1; Y.chat.push(['me', 'Um… I can’t find my crew ID.'], ['them', 'No problem, I’ll call your airline to confirm. (That took an hour.) Any room preference?']); }
-      Y.step = 1;
-    } else if (step === 1) {
-      Y.room = v;
-      const t = { view: 'A high floor with a view, please.', quiet: 'A quiet room away from the lift.', pool: 'Close to the pool and gym.' }[v];
-      const r = { view: 'Lovely, you’ll have the whole city below you. (+5 energy)', quiet: 'Of course, a nice quiet corner room. You’ll sleep better there.', pool: 'Done, the pool is just down the corridor.' }[v];
-      if (v === 'view') S.energy = clamp(S.energy + 5, 0, 100);
-      Y.chat.push(['me', t], ['them', r + ' Shall I book a wake-up call for your crew pick-up?']);
-      Y.step = 2;
-    } else if (step === 2) {
-      Y.wake = v === 'yes';
-      Y.chat.push(['me', Y.wake ? 'Yes please, a wake-up call would be great.' : 'No thanks, I’ll set my own alarm.'], ['them', `Here’s your key card for room ${1200 + Math.floor(Math.random() * 1500)}. Enjoy ${C.city}!`]);
-      Y.step = 3; sfx('ding');
-    }
-    save(); hotel();
-  }
-
-  /* ---------- layover ---------- */
-  function sleepMult() { return S.lay.room === 'quiet' ? 1.3 : 1; }
-  function layover() {
-    S.phase = 'layover'; save();
-    const Y = S.lay, C = SF.CITIES[Y.city];
-    const acts = [];
-    C.spots.forEach(sp => {
-      const done = Y.done.includes(sp.id), can = !done && Y.hours >= sp.h && S.money >= sp.cost && S.energy + sp.e >= 0;
-      acts.push(`<button class="actc" data-l="spot" data-v="${sp.id}" ${can ? '' : 'disabled'}>${SF.postcard(sp.id, 'pc')}<span class="t"><b>${sp.n}</b><span>${sp.h} h · ${sp.cost ? 'S$' + sp.cost : 'free'} · energy ${sp.e}${done ? ' · done' : S.stamps.includes(sp.id) ? ' · postcard collected' : ' · new postcard'}</span></span></button>`);
-    });
-    const poolE = Y.room === 'pool' ? 10 : 6;
-    const simple = [
-      ['shop', C.shop.n, Y.shop ? 'Browse again' : '1 h · shades and accessories', !Y.shop ? Y.hours >= 1 : true, '#f2a7c3'],
-      ['pool', 'Hotel pool and gym', `1 h · energy +${poolE}`, Y.hours >= 1, '#8fd0de'],
-      ['nap', 'Nap in your room', `3 h · energy +${Math.round(15 * sleepMult())}`, Y.hours >= 3, '#c9b8e8']
-    ];
-    simple.forEach(([k, n, t, can, c]) => acts.push(`<button class="actc" data-l="${k}" ${can ? '' : 'disabled'}><span style="display:block;height:110px;background:${c};display:grid;place-items:center">${SF.icon(k === 'shop' ? 'pouch' : k === 'pool' ? 'swimsuit' : 'novel').replace('<svg ', '<svg width="80" height="80" ')}</span><span class="t"><b>${n}</b><span>${t}</span></span></button>`));
-    const pct = Math.round(Y.hours / C.hours * 100);
-    const panel = `<h2>Layover in ${C.city}</h2><p class="sub">${Y.hours} hours until crew pick-up · S$${S.money} · energy ${Math.round(S.energy)}%</p>
-      <div class="hrs" aria-label="${Y.hours} hours left"><b style="width:${pct}%"></b></div>
-      <div class="acts">${acts.join('')}</div>
-      <div class="box">Every leftover hour turns into sleep (+${Math.round(5 * sleepMult())} energy an hour${Y.room === 'quiet' ? ', boosted by your quiet room' : ''}). Arrive home rested for your next duty.</div>
-      <div class="row-btns"><button class="cta" data-l="night">${Y.hours > 0 ? 'Call it a night' : 'Head to the airport'}</button></div>`;
-    frame(SF.scene('city', me({ outfit: 'casual', badge: false, wings: false }), { spot: (Y.done.length ? Y.done[Y.done.length - 1] : C.spots[0].id) }), panel);
-  }
-  function doSpot(id) {
-    const Y = S.lay, sp = SF.CITIES[Y.city].spots.find(s => s.id === id);
-    if (!sp || Y.done.includes(id)) return;
-    Y.hours -= sp.h; S.money -= sp.cost; S.energy = clamp(S.energy + sp.e, 0, 100); Y.done.push(id);
-    const isNew = !S.stamps.includes(id); if (isNew) S.stamps.push(id);
-    save(); sfx('ding');
-    layover();
-    modal(`${SF.postcard(id, 'pcbig')}<h2>${sp.n}</h2><p>${sp.t}</p>${isNew ? `<div class="banner2" style="margin-bottom:14px">New postcard for your scrapbook! (${S.stamps.length}/10)</div>` : ''}<div class="row-btns"><button class="cta" data-l="close">Lovely</button></div>`);
-  }
-  function shop() {
-    const Y = S.lay, C = SF.CITIES[Y.city];
-    if (!Y.shop) { Y.shop = true; Y.hours -= 1; save(); layover(); }
-    modal(`<h2>${C.shop.n}</h2><p class="sub" style="margin:0 0 12px">You have S$${S.money}. Purchases show up at your vanity.</p>
-      <div class="opts">${C.shop.items.map(id => { const it = SF.SHOP[id], own = S.owned.includes(id); return `<button class="opt" data-l="buy" data-v="${id}" ${own || S.money < it.p ? 'disabled' : ''}>${it.n} · ${own ? 'owned' : 'S$' + it.p}</button>`; }).join('')}</div>
-      <p style="font-size:13px;color:#56636d">Not everything here is within the grooming guide. Some things are just for fun.</p>
-      <div class="row-btns"><button class="cta" data-l="close">Done shopping</button></div>`);
-  }
-  function night() {
-    const Y = S.lay;
-    const gain = Math.round(Y.hours * 5 * sleepMult());
-    S.energy = clamp(S.energy + gain, 0, 100); Y.hours = 0;
-    let late = '';
-    if (!Y.wake && Math.random() < 0.35) { S.energy = clamp(S.energy - 10, 0, 100); late = '<p><b>Your alarm didn’t go off!</b> You sprint through the lobby with your hair half pinned. (−10 energy)</p>'; }
-    const L = LV()[Y.lvl];
-    S.energy = clamp(S.energy - 15, 0, 100);
-    const ret = 'SF ' + String(parseInt(L.code.slice(3), 10) + 1).padStart(3, '0');
-    S.day++; S.energy = clamp(S.energy + 30, 0, 100);
-    S.look = { ...BARE }; S.wear = { ...MORNING_WEAR }; S.groomed = null; S.dressed = false; S.phase = 'home'; S.lay = null;
-    save();
-    modal(`<h2>Home sweet home</h2>${gain ? `<p>You slept soundly. (+${gain} energy)</p>` : ''}${late}<p>You operated <b>${ret}</b> back to Singapore, unpacked and had a good night in your own bed.</p><div class="rew" style="margin-bottom:14px"><div>Day ${S.day}</div><div>Energy ${Math.round(S.energy)}%</div></div><div class="row-btns"><button class="cta" data-l="home">Start a new day</button></div>`);
   }
 
   /* ---------- scrapbook & career ---------- */
@@ -362,7 +268,7 @@
 
   /* ---------- events ---------- */
   const A = {
-    title: () => Flight.toMenu(), home, book, career, close: closeModal,
+    title: () => { if (SF.out) SF.out.stop(); Flight.toMenu(); }, home, book, career, close: closeModal,
     cskin: v => { S.skin = +v; creator(); }, chair: v => { S.hairC = +v; creator(); },
     cdone: () => { S.name = ($('#nm').value.trim() || 'Mei').slice(0, 12); S.created = true; save(); home(); },
     pick: v => { S.next = +v; save(); home(); },
@@ -382,12 +288,7 @@
     brief, bnext: () => { B.step = 1; briefRender(); },
     bans: v => { B.picked = +v; if (+v === 0) { B.right++; sfx('ding'); } else sfx('buzz'); briefRender(); },
     bq: () => { B.picked = null; if (B.qi < 2) B.qi++; else B.step = 2; briefRender(); },
-    fly, hotel, h0: v => hotelStep(0, v), h1: v => hotelStep(1, v), h2: v => hotelStep(2, v),
-    lay: layover, spot: doSpot, shop,
-    pool: () => { S.lay.hours -= 1; S.energy = clamp(S.energy + (S.lay.room === 'pool' ? 10 : 6), 0, 100); save(); layover(); },
-    nap: () => { S.lay.hours -= 3; S.energy = clamp(S.energy + Math.round(15 * sleepMult()), 0, 100); save(); layover(); },
-    buy: v => { const it = SF.SHOP[v]; if (S.money < it.p || S.owned.includes(v)) return; S.money -= it.p; S.owned.push(v); save(); sfx('ding'); layover(); shop(); },
-    night,
+    fly, hotel: () => SF.out.start(),
     reset: () => modal('<h2>Start a new career?</h2><p>This clears your name, rank, postcards and purchases.</p><div class="row-btns"><button class="ghost" data-l="close">Keep my career</button><button class="cta" data-l="reset2">Start over</button></div>'),
     reset2: () => { S = fresh(); save(); closeModal(); creator(); }
   };
@@ -399,6 +300,9 @@
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#life .lmodal')) closeModal(); });
 
-  SF.life = { title, home, flightDone, get state() { return S; } };
+  const resetMorning = () => { S.look = { ...BARE }; S.wear = { ...MORNING_WEAR }; S.groomed = null; S.dressed = false; };
+  SF.life = { title, home, flightDone, get state() { return S; },
+    api: { state: () => S, save, topbar, modal, closeModal, sfx, has, home, resetMorning,
+      props: o => Object.assign({ skin: S.skin, hairC: S.hairC, look: S.look, outfit: S.wear.outfit, uni: uniKey(), badge: S.wear.badge, wings: S.wear.wings, name: S.name }, o || {}) } };
   Flight.toMenu();
 })(window.SF);
